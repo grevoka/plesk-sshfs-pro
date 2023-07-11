@@ -1,0 +1,71 @@
+<?php echo $this->renderTabs($this->tabs); ?>
+
+<h2><?php echo  pm_Locale::lmsg( 'configure_fs_mount_point' ) ?> <?php echo $this->typeFs ?> </h2>
+
+<?php echo $this->form; ?>
+
+
+
+<script>
+    window.addEventListener( 'load', function () {
+        var ssh_enable                    = document.getElementById( 'ssh_enable' );
+        var ssh_enable_form_row           = document.getElementById( 'ssh_enable-form-row' );
+        var ssh_cancel_button             = document.getElementById( 'btn-cancel' );
+        var config_form                   = document.getElementById( 'pm-form-simple' );
+        ssh_enable_form_row.style.display = 'none';
+
+        if ( ssh_enable.checked ) {
+            ssh_cancel_button.style.backgroundColor = '#ddf5ce';
+            ssh_cancel_button.style.color           = '#222';
+
+           document.getElementById('path_local').readOnly = true;
+
+        } else {
+            ssh_cancel_button.style.backgroundColor = '#ff636c';
+            ssh_cancel_button.style.color           = '#FFF';
+
+            
+            
+            document.getElementById('type_fs').readOnly = true;
+            document.getElementById('host').readOnly = true;
+	    document.getElementById('port').readOnly = true;
+            document.getElementById('login').readOnly = true;
+            document.getElementById('password').readOnly = true;
+	    document.getElementById('path_local').readOnly = true;
+            document.getElementById('path_remote').readOnly = true;
+        }
+
+        document.addEventListener( 'click', ( e ) => {
+            if ( e.target.id == 'btn-cancel' ) {
+
+                e.stopPropagation();
+
+                config_form.submit();
+
+            }
+        }, true );
+
+        document.addEventListener( 'click', ( e ) => {
+            if ( e.target.id == 'btn-send' ) {
+
+                e.stopPropagation();
+
+                ssh_enable.checked = false;
+
+                config_form.submit();
+
+            }
+        }, true );
+
+        document.addEventListener( 'click', ( e ) => {
+            if ( e.target.id == 'togglePasswordBtn' ) {
+
+                e.stopPropagation();
+                e.preventDefault();
+
+                togglePasswordVisibility();
+
+            }
+        }, true );
+    } )
+</script>

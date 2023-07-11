@@ -1,0 +1,202 @@
+#!/bin/bash
+
+##########################################################
+# SSHFS Remote Storage Extention for Plesk
+# PRE-UNINSTALL SCRIPT BASH - Created by D4.FR
+# 25/12/2022
+##########################################################
+
+set -e
+
+FUSE_CONF=/etc/fuse.conf
+FOLDER="/mnt/sshfs"
+SUDO_CONF=/etc/sudoers.d/sshfs_access.conf
+CACHE_NAME_INSTALL_LOG=install-sshfs-remote-storage.log
+
+# detect PSA_BASE
+if [ -e "/opt/psa/version" ] ; then
+    PSA_BASE="/opt/psa"
+elif [ -e "/usr/local/psa/version" ] ; then
+    PSA_BASE="/usr/local/psa"
+else
+    PSA_BASE="/usr/local/psa"
+fi
+
+
+CACHE_INSTALL_FOLDER=$PSA_BASE/var/cache/
+CACHE_SAVE_CONF=$CACHE_INSTALL_FOLDER/$CACHE_NAME_INSTALL_LOG
+
+
+function find_program() { 
+
+        which "$1" | grep -o "$1" > /dev/null &&  return 0 || return 1 
+}
+
+function delete_conf_fuse () {
+
+        if grep -q "fuse" "$CACHE_SAVE_CONF"; then
+        # delete setup
+        rm /etc/fuse.conf 
+        else
+        #Remove Configuration 
+                pattern="user_allow_other #sshfs-plesk-d4"
+                file="/etc/fuse.conf"
+                while read -r line
+                do
+                [[ ! $line =~ $pattern ]] && echo "$line"
+                done <$file > fuse_tmp_swap.conf
+                mv fuse_tmp_swap.conf $file
+        fi
+}
+
+
+
+         # Find our package manager
+         if VERB="$( which apt-get )" 2> /dev/null; then
+                echo "Debian-based"
+                    
+                if grep -q "fuse" "$CACHE_SAVE_CONF"; then
+                
+                delete_conf_fuse
+                apt-get -y remove fuse
+                apt-get -y purge fuse
+                else
+                
+                # delete conf add by extention.
+                
+                delete_conf_fuse                                 
+                
+                fi
+                
+                
+                if grep -q 'sshfs' "$CACHE_SAVE_CONF"; then
+                              
+                apt-get -y remove sshfs 
+                apt-get -y purge sshfs
+                
+                fi  
+                
+                if grep -q 'curlftpfs' "$CACHE_SAVE_CONF"; then
+                              
+                apt-get -y remove curlftpfs 
+                apt-get -y purge curlftpfs
+                
+                fi  
+
+                if grep -q 'davfs2' "$CACHE_SAVE_CONF"; then
+                              
+                apt-get -y remove davfs2 
+                apt-get -y purge davfs2
+                
+                fi  
+
+                if grep -q 'sudo' "$CACHE_SAVE_CONF"; then
+                              
+                apt-get -y remove sudo 
+                apt-get -y purge sudo
+
+                rm -rf $SUDO_CONF
+                        
+                else
+                echo "sudo has been installed by another."
+                echo "But i  delete sudo access sshfs"
+                rm -rf $SUDO_CONF
+                
+                fi  
+
+
+         elif VERB="$( which yum )" 2> /dev/null; then
+         echo "Modern Red Hat-based"
+                 
+                 
+                 if grep -q "fuse-sshfs" "$CACHE_SAVE_CONF"; then
+                 
+                 
+                 delete_conf_fuse 
+                 yum -y remove fuse-sshfs
+                 
+                 else
+                 
+                 echo " fuse-sshfs has been installed by another."
+                 # delete conf add by extention.
+                 delete_conf_fuse 
+                 
+                 fi
+                 
+                 if grep -q "epel-release" "$CACHE_SAVE_CONF"; then
+                 
+                 yum remove -y epel-release
+                 
+                 else
+                 echo " epel-release has been installed by another."
+                 fi
+
+                if grep -q "curlftpfs" "$CACHE_SAVE_CONF"; then
+                 
+                 
+                 delete_conf_fuse 
+                 yum -y remove curlftpfs
+                 
+                 else
+                 
+                 echo " curlftpfs has been installed by another."
+                 # delete conf add by extention.
+                 delete_conf_fuse 
+                 
+                 fi
+
+                if grep -q "davfs2" "$CACHE_SAVE_CONF"; then
+                 
+                 
+                 delete_conf_fuse 
+                 yum -y remove davfs2
+                 
+                 else
+                 
+                 echo "davfs2 has been installed by another."
+                 # delete conf add by extention.
+                 delete_conf_fuse 
+                 
+                 fi
+
+                 if grep -q "sudo" "$CACHE_SAVE_CONF"; then
+                 
+                 
+                 delete_conf_fuse 
+                 yum -y remove sudo
+                 
+                 else
+                 
+                 echo "sudo has been installed by another."
+                 # delete conf add by extention.
+                 delete_conf_fuse 
+
+                 echo "But i  delete sudo access sshfs"
+                 rm -rf $SUDO_CONF
+                 
+                 fi
+ 
+                                 
+                                 
+         else                    
+         echo "I have no idea what I'm doing." >&2
+         fi
+        
+        #Delete log file install history	
+	rm  $CACHE_INSTALL_FOLDER/install-sshfs-remote-storage.log
+        
+        # Vérifiez si le répertoire passé en argument est vide
+        if [ -z "$(ls -A "$FOLDER")" ]; then
+        # Si le répertoire est vide, affichez un message
+        
+        rm -rf /mnt/sshfs/
+
+        echo "Le répertoire $FOLDER est vide."
+        else
+        # Si le répertoire n'est pas vide, affichez un message
+        echo "Le répertoire $FOLDER n'est pas vide."
+        fi
+
+
+
+

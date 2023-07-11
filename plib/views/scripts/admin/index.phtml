@@ -1,0 +1,39 @@
+<?php
+// Copyright 2022 - 2023 - D4FR
+?>
+
+
+<?php echo $this->renderTabs($this->tabs); ?>
+
+<style>
+
+ .encadrer-un-contenu{ border: 1px solid black; padding: 8px; } 
+
+</style>
+
+<h1><?php echo  pm_Locale::lmsg( 'fs_mount_point' ) ?></h1>
+
+<form method="POST">
+<hr>
+
+ <span class="encadrer-un-contenu">
+<select name="type_fs" id="type_fs">
+    <option value="sshfs">sshfs</option>
+    <option value="sftp-fs">sftp-fs</option>
+    <option value="webdav">webdav</option>
+</select>
+
+<input type='submit' class='btn btn-success' name="action_fs_add" value='<?php echo pm_Locale::lmsg( 'create_mount_point' )?>'/>
+
+</span> 
+
+&nbsp;
+
+
+<hr>
+
+<input type='submit' class='btn btn-danger'  name="action_fs_delete" value='<?php echo  pm_Locale::lmsg( 'delete_mount_point' ) ?>'/>
+
+
+    <?php echo $this->renderList($this->list); ?>        
+</form>

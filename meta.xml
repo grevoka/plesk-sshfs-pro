@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+  <id>sshfspro</id>
+  <name>SSHFS PRO - Remote Storage</name>
+  <description>SSHFS PRO Remote Storage allows you to mount a remote folder to a local mount point on your server from a secure SSH / FTPS / WEBDAV connection. It will allow you to easily perform transfers to your backup server.</description>
+  <description xml:lang="fr-FR">SSHFS PRO stockage distant vous permet de monter un dossier  distant vers un point de montage local sur votre serveur  à partir d’une connexion sécurisé SSH / FTPS / WEBDAV. Il vous permettra de réaliser facilement des  transferts vers votre serveur de sauvegarde.</description>
+  <description xml:lang="en-US">SSHFS PRO Remote Storage allows you to mount a remote folder to a local mount point on your server from a secure SSH / FTPS / WEBDAV connection. It will allow you to easily perform transfers to your backup server.</description>
+  <version>2.0.0</version>
+  <release>2</release>
+  <vendor>D4FR</vendor>
+  <url>https://d4.fr</url>
+  <os>unix</os>
+  <category>clouds</category>
+  <category>server_tool</category>
+  <plesk_min_version>18.0.27</plesk_min_version>
+</module>

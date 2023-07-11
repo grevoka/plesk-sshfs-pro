@@ -1,0 +1,207 @@
+#!/bin/bash
+
+##########################################################
+# SSHFS PRO  Extention for Plesk
+# POST-INSTALL SCRIPT BASH - Created by D4.FR
+# 23/12/2022 
+##########################################################
+
+set -e
+
+FUSE_CONF=/etc/fuse.conf
+SUDO_CONF=/etc/sudoers.d/sshfs_access.conf
+CACHE_NAME_INSTALL_LOG=install-sshfs-remote-storage.log
+
+
+# detect PSA_BASE
+if [ -e "/opt/psa/version" ] ; then
+    PSA_BASE="/opt/psa"
+elif [ -e "/usr/local/psa/version" ] ; then
+    PSA_BASE="/usr/local/psa"
+else
+    PSA_BASE="/usr/local/psa"
+fi
+
+CACHE_INSTALL_FOLDER=$PSA_BASE/var/cache/
+CACHE_SAVE_CONF=$CACHE_INSTALL_FOLDER/$CACHE_NAME_INSTALL_LOG 
+
+function find_program() { 
+
+        which "$1" | grep -o "$1" > /dev/null &&  return 0 || return 1 
+}
+
+function yum_nstalled {
+
+if yum list installed "$@" >/dev/null 2>&1; then
+	true
+	else
+	false
+	fi
+}
+              
+	 # Find our package manager
+	 if VERB="$( which apt-get )" 2> /dev/null; then
+	 	echo "Debian-based"
+	 	
+		if VERB="$( which fusermount )" 2> /dev/null; then
+					echo "Already Installed"
+					echo "already installed - f_user_mount " >> $CACHE_SAVE_CONF
+			else
+					echo "Install fuse program"
+					apt-get -y install fuse  
+					echo "fuse" >> $CACHE_SAVE_CONF  
+		fi 	
+
+		if VERB="$( which curlftpfs )" 2> /dev/null; then
+					echo "Already Installed"
+					echo "already installed - curlftpfs " >> $CACHE_SAVE_CONF
+			else
+					echo "Install fuse - curlftpfs  program"
+					apt-get -y install curlftpfs  
+					echo "curlftpfs" >> $CACHE_SAVE_CONF  
+		fi 	
+
+		
+		if VERB="$( which mount.davfs )" 2> /dev/null; then
+					echo "Already Installed"
+					echo "already installed - mount.davfs  " >> $CACHE_SAVE_CONF
+			else
+					echo "Install fuse - davfs2 program"
+					apt-get -y install davfs2  
+					echo "davfs2" >> $CACHE_SAVE_CONF  
+		fi 	
+	
+	
+	 	if VERB="$( which sshfs )" 2> /dev/null; then
+				echo "Already Installed"
+				echo "already installed - ssh_fs " >> $CACHE_SAVE_CONF
+	 		else
+				echo "Install sshfs program"
+				apt-get -y install sshfs
+				echo "sshfs" >> $CACHE_SAVE_CONF
+	 	fi
+	 
+	    # Installation SUDO to USER mount.davfs2
+
+			
+	 	if VERB="$( which sudo )" 2> /dev/null; then
+	 		echo "Already Installed"
+	 		echo "already installed - sudo " >> $CACHE_SAVE_CONF
+	 	else
+	 		echo "Install sudo program"
+	 		apt-get -y install sudo
+	 		echo "sudo" >> $CACHE_SAVE_CONF
+	 	fi
+	 
+
+	 	                           
+	 elif VERB="$( which yum )" 2> /dev/null; then
+	 echo "Modern Red Hat-based"
+	 
+	         pkg="epel-release"
+	         if rpm -q $pkg
+	         then
+	             echo "$pkg installed"
+	             echo "already installed - epel_release " >> $CACHE_SAVE_CONF
+	             else
+	             echo "$pkg NOT installed"        
+	         yum install -y epel-release
+	         echo "epel-release" >> $CACHE_SAVE_CONF
+	         fi
+	         
+	         pkg="fuse-sshfs"
+	         if rpm -q $pkg
+	         then
+	             echo "$pkg installed"
+	             echo "already installed - fuse_ssh_fs " >> $CACHE_SAVE_CONF 
+	             else
+	             echo "$pkg NOT installed"
+	         yum install -y fuse-sshfs
+	         echo "fuse-sshfs" >> $CACHE_SAVE_CONF
+	         fi
+
+			 pkg="curlftpfs"
+	         if rpm -q $pkg
+	         then
+	             echo "$pkg installed"
+	             echo "already installed - curlftpfs " >> $CACHE_SAVE_CONF 
+	             else
+	             echo "$pkg NOT installed"
+	         yum install -y curlftpfs
+	         echo "curlftpfs" >> $CACHE_SAVE_CONF
+	         fi
+
+			pkg="davfs2"
+	         if rpm -q $pkg
+	         then
+	             echo "$pkg installed"
+	             echo "already installed - davfs2 " >> $CACHE_SAVE_CONF 
+	             else
+	             echo "$pkg NOT installed"
+	         yum install -y davfs2
+	         echo "davfs2" >> $CACHE_SAVE_CONF
+	         fi
+
+			 pkg="sudo"
+	         if rpm -q $pkg
+	         then
+	             echo "$pkg installed"
+	             echo "already installed - sudo " >> $CACHE_SAVE_CONF 
+	             else
+	             echo "$pkg NOT installed"
+	         yum install -y sudo
+	         echo "sudo" >> $CACHE_SAVE_CONF
+	         fi
+	                               
+	 else
+	 echo "What ?" >&2
+	 fi	
+
+         #Configuration SSHFS / FUSE / STORAGE
+
+	    mkdir -p /mnt/sshfs/  
+	    chown -R psaadm:psaadm /mnt/sshfs/
+	        
+		
+		 if test -f "$FUSE_CONF"; then
+    		 
+    		 echo "$FUSE_CONF exists."
+		 
+			#Find if parameter user_allow_other  is enable.
+		 
+			while IFS= read -r line
+			do
+  				if [[ "$line" == "user_allow_other"* ]]; then
+    				
+    				echo "Parameter user_allow_other is already enabled"
+    				echo "$line"
+  		                
+  		                else
+  		                	if grep -q "user_allow_other #sshfs-plesk-d4" "$FUSE_CONF"; then
+  		                	echo "Setup SSHFS Plesk extention is enabled"                
+                			else
+		  			echo "Enabled user_allow_other from sshfs-plesk-d4"
+  		                	echo "user_allow_other #sshfs-plesk-d4" >> $FUSE_CONF
+					fi
+  		                
+  		                		
+  				fi
+			
+			done < $FUSE_CONF
+
+        #Create file permission to use mount.davfs and /
+		echo "##################################################" > $SUDO_CONF
+		echo "#SETUP SUDO ACCESS BY SSHFS - REMOTE STORAGE     #" >> $SUDO_CONF
+		echo "##################################################" >> $SUDO_CONF
+	    echo "psaadm ALL=(ALL:ALL) NOPASSWD:/usr/sbin/mount.davfs,/bin/fusermount" >> $SUDO_CONF
+		echo "##################################################" >> $SUDO_CONF
+		
+		else
+           
+		 #Create file config FUSE with add Parameter
+		 echo "##################################################" >  $FUSE_CONF
+		 echo "#SETUP HAS BEEN CREATED BY SSHFS - REMOTE STORAGE#" >> $FUSE_CONF
+		 echo "##################################################" >> $FUSE_CONF
+		 echo "user_allow_other #sshfs-plesk-d4" >> $FUSE_CONF
+		 
+	    fi
